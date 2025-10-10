@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>員工打卡統計</title>
+    <style>
+        body { font-family: "微軟正黑體"; margin: 40px; background-color: #f8f9fa; }
+        input, button { font-size: 16px; padding: 6px 10px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; background-color: #fff; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
+        th { background-color: #d0ebff; }
+        h2, h3 { color: #333; }
+        .summary { margin-top: 20px; font-size: 18px; font-weight: bold; color: #0077b6; }
+    </style>
+</head>
+<body>
+    <h2>📊 員工當月打卡統計</h2>
+    <form method="POST">
+        <label>身分證字號：</label>
+        <input type="text" name="nid" value="{{ nid }}" placeholder="輸入身分證字號" required>
+        <button type="submit">查詢本月資料</button>
+    </form>
+
+    {% if records %}
+    <h3>查詢結果：</h3>
+    <table>
+        <tr>
+            <th>姓名</th>
+            <th>上班時間</th>
+            <th>下班時間</th>
+            <th>工時(小時)</th>
+            <th>分鐘</th>
+        </tr>
+        {% for r in records %}
+        <tr>
+            <td>{{ r.name }}</td>
+            <td>{{ r.service_start }}</td>
+            <td>{{ r.service_end or '尚未下班' }}</td>
+            <td>{{ r.service_hours or 0 }}</td>
+            <td>{{ r.service_minutes or 0 }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div class="summary">
+        🧮 本月總工時：{{ total_hours }} 小時 {{ total_minutes }} 分
+    </div>
+
+    {% elif nid %}
+    <p>❌ 沒有找到本月資料。</p>
+    {% endif %}
+</body>
+</html>

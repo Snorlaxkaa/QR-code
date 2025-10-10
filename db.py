@@ -17,13 +17,19 @@ def insert_check_in(name, nid, check_in):
     conn = get_connection()
     cursor = conn.cursor()
     sql = """
-        INSERT INTO service_records (name, id_number, service_start)
-        VALUES (%s, %s, %s)
+        INSERT INTO service_records 
+        (name, id_number, service_start, service_item, service_content)
+        VALUES (%s, %s, %s, %s, %s)
     """
-    cursor.execute(sql, (name, nid, check_in))
+    # 預設值
+    service_item = "0010"
+    service_content = "0001"
+
+    cursor.execute(sql, (name, nid, check_in, service_item, service_content))
     conn.commit()
     cursor.close()
     conn.close()
+
 
 # ---------- 下班打卡 ----------
 def update_check_out(nid, check_out, hours, minutes):
