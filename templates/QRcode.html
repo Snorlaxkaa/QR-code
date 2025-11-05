@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRCode 產生器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            max-width: 1000px;
+        }
+
+        .btn-custom {
+            background: #0d6efd;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            padding: 10px 0;
+        }
+
+        .btn-custom:hover {
+            background: #0b5ed7;
+        }
+
+        .qr-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        img {
+            max-width: 260px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .small-note {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        .form-section {
+            border-right: 1px solid #dee2e6;
+            padding-right: 40px;
+        }
+
+        .form-label {
+            font-size: 1.1rem;
+        }
+
+        input.form-control {
+            font-size: 1.1rem;
+            padding: 10px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .success-name {
+            font-weight: 600;
+            color: #198754;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card w-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">📋 QRCode 產生器</h2>
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-outline-secondary">
+                    🏠 返回首頁
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- 左側輸入區 -->
+                <div class="col-md-6 form-section">
+                    <form method="POST" autocomplete="off">
+                        <div class="mb-4">
+                            <label class="form-label">👤 姓名</label>
+                            <input type="text" name="name" class="form-control"
+                                   placeholder="請輸入姓名" required autocomplete="off">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">🪪 身分證字號</label>
+                            <input type="text" name="id_number" class="form-control"
+                                   placeholder="格式：A123456789"
+                                   required autocomplete="off"
+                                   pattern="^[A-Z]{1}[0-9]{9}$"
+                                   maxlength="10"
+                                   inputmode="latin"
+                                   title="請輸入有效的身分證字號（1 個大寫英文 + 9 位數字）">
+                        </div>
+
+                        <button type="submit" class="btn btn-custom w-100">🚀 產生 QRCode</button>
+                    </form>
+
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="alert alert-warning mt-4">
+                        {% for msg in messages %}
+                        <p>{{ msg }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <!-- 右側 QR 顯示區 -->
+                <div class="col-md-6 qr-area text-center">
+                    {% if qr_base64 %}
+                    <div>
+                        <h5 class="mb-3 text-success">
+                            ✅ 已成功產生 <span class="success-name">{{ user_name }}</span> 的 QRCode
+                        </h5>
+                        <img src="data:image/png;base64,{{ qr_base64 }}" alt="QRCode">
+                        <p class="small-note mt-3">右鍵點擊可另存為圖片</p>
+                    </div>
+                    {% else %}
+                    <p class="text-muted fs-5">尚未產生任何 QRCode</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 限制使用者只能輸入英數 -->
+    <script>
+        const idInput = document.querySelector('input[name="id_number"]');
+        idInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    </script>
+</body>
+</html>

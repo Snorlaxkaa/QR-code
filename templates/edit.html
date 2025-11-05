@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯資料</title>
+    <style>
+        body { 
+            font-family: '微軟正黑體', Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 40px; 
+            margin: 0;
+            color: #333;
+        }
+        
+        h2 { 
+            text-align: center; 
+            color: #1a73e8;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        form { 
+            background: white; 
+            padding: 30px;
+            border-radius: 12px; 
+            max-width: 700px; 
+            margin: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label { 
+            font-weight: 600; 
+            display: block; 
+            margin-bottom: 8px;
+            color: #444;
+            font-size: 14px;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 10px;
+            margin: 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+        
+        input[type="datetime-local"] {
+            padding: 8px;
+        }
+        
+        input[type="number"] {
+            padding-right: 0;
+        }
+        
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        button { 
+            background: #1a73e8; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover { 
+            background: #1557b0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .cancel-btn {
+            background: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .cancel-btn:hover {
+            background: #f8f9fa;
+            box-shadow: none;
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            form {
+                padding: 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>✏️ 編輯資料 (編號 {{ record.serial_no }})</h2>
+    <form method="POST">
+        <!-- 基本資料 -->
+        <div class="form-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" name="name" value="{{ record.name or '' }}" placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group">
+            <label for="id_number">身分證號</label>
+            <input type="text" id="id_number" name="id_number" value="{{ record.id_number or '' }}" placeholder="請輸入身分證號">
+        </div>
+
+        <!-- 時間資訊 -->
+        <div class="form-group">
+            <label for="service_start">開始時間</label>
+            <input type="datetime-local" id="service_start" name="service_start" 
+                   value="{{ record.service_start.strftime('%Y-%m-%dT%H:%M') if record.service_start else '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="service_end">結束時間</label>
+            <input type="datetime-local" id="service_end" name="service_end" 
+                   value="{{ record.service_end.strftime('%Y-%m-%dT%H:%M') if record.service_end else '' }}">
+        </div>
+
+        <!-- 服務資訊 -->
+        <div class="form-group">
+            <label for="service_item">服務項目</label>
+            <input type="text" id="service_item" name="service_item" value="{{ record.service_item or '' }}" placeholder="請輸入服務項目">
+        </div>
+
+        <div class="form-group">
+            <label for="service_content">服務內容</label>
+            <input type="text" id="service_content" name="service_content" value="{{ record.service_content or '' }}" placeholder="請輸入服務內容">
+        </div>
+
+        <!-- 時間統計 -->
+        <div class="form-group">
+            <label for="service_hours">服務時數</label>
+            <input type="number" id="service_hours" name="service_hours" min="0" value="{{ record.service_hours or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="service_minutes">服務分鐘</label>
+            <input type="number" id="service_minutes" name="service_minutes" min="0" max="59" value="{{ record.service_minutes or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="served_people_count">服務人數</label>
+            <input type="number" id="served_people_count" name="served_people_count" min="0" value="{{ record.served_people_count or 0 }}">
+        </div>
+
+        <!-- 費用資訊 -->
+        <div class="form-group">
+            <label for="transport_fee">交通費</label>
+            <input type="number" id="transport_fee" name="transport_fee" min="0" value="{{ record.transport_fee or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="meal_fee">餐費</label>
+            <input type="number" id="meal_fee" name="meal_fee" min="0" value="{{ record.meal_fee or 0 }}">
+        </div>
+
+        <!-- 其他資訊 -->
+        <div class="form-group">
+            <label for="service_area">服務地區</label>
+            <input type="text" id="service_area" name="service_area" value="{{ record.service_area or '' }}" placeholder="請輸入服務地區">
+        </div>
+
+        <div class="form-group">
+            <label for="remarks">備註</label>
+            <input type="text" id="remarks" name="remarks" value="{{ record.remarks or '' }}" placeholder="請輸入備註">
+        </div>
+
+        <div class="form-group">
+            <label for="import_action">匯入行為</label>
+            <input type="text" id="import_action" name="import_action" value="{{ record.import_action or '' }}" placeholder="請輸入匯入行為">
+        </div>
+
+        <!-- 服務次數統計 -->
+        <div class="form-group">
+            <label for="foreign_service_count">境外服務次數</label>
+            <input type="number" id="foreign_service_count" name="foreign_service_count" min="0" value="{{ record.foreign_service_count or 0 }}">
+        </div>
+
+        <div class="form-group">
+            <label for="domestic_service_count">國內服務次數</label>
+            <input type="number" id="domestic_service_count" name="domestic_service_count" min="0" value="{{ record.domestic_service_count or 0 }}">
+        </div>
+
+        <!-- 按鈕區 -->
+        <div class="actions">
+            <a href="{{ url_for('admin_panel') }}" class="cancel-btn">取消</a>
+            <button type="submit">💾 儲存修改</button>
+        </div>
+    </form>
+</body>
+</html>

@@ -3,52 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>員工打卡統計</title>
+    <title>打卡紀錄管理系統</title>
     <style>
-        body { font-family: "微軟正黑體"; margin: 40px; background-color: #f8f9fa; }
-        input, button { font-size: 16px; padding: 6px 10px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; background-color: #fff; }
+        body { font-family: "微軟正黑體", Arial; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .header { background-color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin: 0 0 10px 0; }
+        .user-info { margin-bottom: 15px; color: #666; }
+        .search-section { background-color: #e7f3ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .search-section h2 { color: #0077b6; margin-top: 0; }
+        input, button, select { font-size: 16px; padding: 8px 15px; margin: 5px; border-radius: 4px; border: 1px solid #ddd; }
+        select { background-color: white; cursor: pointer; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .export-btn { background-color: #2196F3; }
+        .export-btn:hover { background-color: #0b7dda; }
+        .summary { margin: 20px 0; padding: 15px; background-color: #d0ebff; border-radius: 5px; font-size: 18px; font-weight: bold; color: #0077b6; }
+        table { border-collapse: collapse; width: 100%; font-size: 14px; background-color: #fff; margin-top: 20px; }
         th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
-        th { background-color: #d0ebff; }
-        h2, h3 { color: #333; }
-        .summary { margin-top: 20px; font-size: 18px; font-weight: bold; color: #0077b6; }
+        th { background-color: #d0ebff; color: #333; }
+        a { text-decoration: none; }
+        .section-title { background-color: #fff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .section-title h2 { margin: 0; color: #333; }
+        .error-message { color: red; margin-top: 10px; }
+        .search-table { margin-top: 15px; }
+        .pagination { 
+            margin: 20px 0;
+            text-align: center;
+        }
+        .page-info {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .page-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #333;
+            text-decoration: none;
+        }
+        .page-btn:hover {
+            background-color: #e0e0e0;
+        }
+        .current-page {
+            padding: 5px 10px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
-    <h2>📊 員工當月打卡統計</h2>
-    <form method="POST">
-        <label>身分證字號：</label>
-        <input type="text" name="nid" value="{{ nid }}" placeholder="輸入身分證字號" required>
-        <button type="submit">查詢本月資料</button>
-    </form>
+    <div class="header">
+        <h1>🏢 打卡紀錄管理系統</h1>
+        <div class="user-info">使用者：{{ user }}</div>
+        <a href="{{ url_for('qrcode_page') }}">
+            <button>📷 前往 QR Code 打卡頁面</button>
+        </a>
+        <form action="{{ url_for('export_xlsx') }}" method="POST" style="display: inline;">
+            <input type="hidden" name="nid" value="{{ nid or '' }}">
+            <input type="hidden" name="date_start" value="{{ date_start or '' }}">
+            <input type="hidden" name="date_end" value="{{ date_end or '' }}">
+            <button type="submit" class="export-btn">📘 匯出 Excel</button>
+        </form>
+    </div>
 
-    {% if records %}
-    <h3>查詢結果：</h3>
-    <table>
+    <!-- 員工個人查詢區 -->
+    <div class="search-section">
+        <h2>📊 員工打卡統計查詢</h2>
+        <form method="GET" action="{{ url_for('admin_panel') }}">
+            <label for="nid">身分證字號：</label>
+            <input type="text" id="nid" name="nid" value="{{ request.args.get('nid', '') }}" placeholder="輸入身分證字號">
+
+            <label for="date_start">開始日期：</label>
+            <input type="date" id="date_start" name="date_start" value="{{ request.args.get('date_start', '') }}">
+
+            <label for="date_end">結束日期：</label>
+            <input type="date" id="date_end" name="date_end" value="{{ request.args.get('date_end', '') }}">
+
+            <button type="submit">🔍 查詢資料</button>
+        </form>
+
+        {% if request.args.get('date_start') or request.args.get('date_end') or request.args.get('nid') %}
+            {% if personal_records %}
+            <table class="search-table">
+                <tr>
+                    <th>序號</th><th>姓名</th><th>身分證</th>
+                    <th>上班</th><th>下班</th><th>服務項目</th><th>服務內容</th>
+                    <th>工時</th><th>分鐘</th><th>服務人數</th>
+                    <th>交通費</th><th>餐費</th><th>服務地區</th>
+                    <th>備註</th><th>匯入動作</th><th>海外服務</th><th>國內服務</th>
+                </tr>
+        {% for r in personal_records %}
         <tr>
-            <th>姓名</th>
-            <th>上班時間</th>
-            <th>下班時間</th>
-            <th>工時(小時)</th>
-            <th>分鐘</th>
-        </tr>
-        {% for r in records %}
-        <tr>
+            <td>{{ r.serial_no }}</td>
             <td>{{ r.name }}</td>
+            <td>{{ r.id_number }}</td>
             <td>{{ r.service_start }}</td>
             <td>{{ r.service_end or '尚未下班' }}</td>
+            <td>{{ r.service_item }}</td>
+            <td>{{ r.service_content }}</td>
             <td>{{ r.service_hours or 0 }}</td>
             <td>{{ r.service_minutes or 0 }}</td>
+            <td>{{ r.served_people_count or 0 }}</td>
+            <td>{{ r.transport_fee or 0 }}</td>
+            <td>{{ r.meal_fee or 0 }}</td>
+            <td>{{ r.service_area or '' }}</td>
+            <td>{{ r.remarks or '' }}</td>
+            <td>{{ r.import_action or '' }}</td>
+            <td>{{ r.foreign_service_count or 0 }}</td>
+            <td>{{ r.domestic_service_count or 0 }}</td>
         </tr>
         {% endfor %}
     </table>
 
+    {% if personal_records %}
+    <div class="pagination">
+        <!-- 頁碼資訊 -->
+        <div class="page-info">
+            第 {{ page }} 頁，共 {{ total_pages }} 頁 (總共 {{ total_records }} 筆記錄)
+        </div>
+        
+        <!-- 分頁按鈕 -->
+        <div class="page-buttons">
+            {% if page > 1 %}
+            <a href="{{ url_for('admin_panel', page=page-1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">上一頁</a>
+            {% endif %}
+            
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                <span class="current-page">{{ p }}</span>
+                {% else %}
+                <a href="{{ url_for('admin_panel', page=p, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('admin_panel', page=page+1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">下一頁</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if nid %}
     <div class="summary">
-        🧮 本月總工時：{{ total_hours }} 小時 {{ total_minutes }} 分
+        🧮 {{ nid }} 的總工時：{{ total_hours }} 小時 {{ total_minutes }} 分
+    </div>
+    {% endif %}
+            {% else %}
+            <p class="error-message">❌ 沒有找到符合條件的資料。</p>
+            {% endif %}
+        {% endif %}
+
     </div>
 
-    {% elif nid %}
-    <p>❌ 沒有找到本月資料。</p>
-    {% endif %}
+    <!-- 所有記錄管理區 -->
+    <div class="section-title">
+        <h2>📋 所有打卡記錄管理</h2>
+    </div>
+
+    <table>
+        <tr>
+            <th>序號</th><th>姓名</th><th>身分證</th>
+            <th>上班</th><th>下班</th><th>服務項目</th><th>服務內容</th>
+            <th>工時</th><th>分鐘</th><th>服務人數</th>
+            <th>交通費</th><th>餐費</th><th>服務地區</th><th>備註</th>
+            <th>匯入動作</th><th>海外服務</th><th>國內服務</th><th>操作</th>
+        </tr>
+        {% for r in records %}
+        <tr>
+            <td>{{ r.serial_no }}</td>
+            <td>{{ r.name }}</td>
+            <td>{{ r.id_number }}</td>
+            <td>{{ r.service_start }}</td>
+            <td>{{ r.service_end }}</td>
+            <td>{{ r.service_item }}</td>
+            <td>{{ r.service_content }}</td>
+            <td>{{ r.service_hours }}</td>
+            <td>{{ r.service_minutes }}</td>
+            <td>{{ r.served_people_count }}</td>
+            <td>{{ r.transport_fee }}</td>
+            <td>{{ r.meal_fee }}</td>
+            <td>{{ r.service_area or '' }}</td>
+            <td>{{ r.remarks or '' }}</td>
+            <td>{{ r.import_action or '' }}</td>
+            <td>{{ r.foreign_service_count }}</td>
+            <td>{{ r.domestic_service_count }}</td>
+            <td>
+                <a href="{{ url_for('edit', serial_no=r.serial_no) }}">✏️</a> |
+                <a href="{{ url_for('delete', serial_no=r.serial_no) }}" onclick="return confirm('確定刪除？')">🗑️</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
