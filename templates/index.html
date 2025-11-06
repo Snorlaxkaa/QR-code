@@ -57,6 +57,14 @@
             color: white;
             border-radius: 3px;
         }
+        .dots {
+            padding: 5px 10px;
+            color: #666;
+            font-weight: bold;
+            cursor: default;
+            -webkit-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -133,19 +141,51 @@
         <!-- 分頁按鈕 -->
         <div class="page-buttons">
             {% if page > 1 %}
-            <a href="{{ url_for('admin_panel', page=page-1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">上一頁</a>
+            <a href="{{ url_for('admin_panel', page=1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟪</a>
+            <a href="{{ url_for('admin_panel', page=page-1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟨</a>
             {% endif %}
+
+            {# 計算要顯示的頁碼範圍 #}
+            {% set window_size = 2 %}
+            {% set start_page = page - window_size %}
+            {% set end_page = page + window_size %}
             
-            {% for p in range(1, total_pages + 1) %}
+            {# 調整範圍確保不超出邊界 #}
+            {% if start_page < 1 %}
+                {% set end_page = end_page - start_page + 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+            {% if end_page > total_pages %}
+                {% set start_page = start_page - (end_page - total_pages) %}
+                {% set end_page = total_pages %}
+            {% endif %}
+            {% if start_page < 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+
+            {# 顯示第一頁和省略號 #}
+            {% if start_page > 1 %}
+                {% if start_page > 2 %}
+                    <span class="dots">...</span>
+                {% endif %}
+            {% endif %}
+
+            {# 顯示頁碼 #}
+            {% for p in range(start_page, end_page + 1) %}
                 {% if p == page %}
-                <span class="current-page">{{ p }}</span>
+                    <span class="current-page">{{ p }}</span>
                 {% else %}
-                <a href="{{ url_for('admin_panel', page=p, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">{{ p }}</a>
+                    <a href="{{ url_for('admin_panel', page=p, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">{{ p }}</a>
                 {% endif %}
             {% endfor %}
-            
+
+            {# 顯示省略號 #}
+            {% if end_page < total_pages - 1 %}
+                <span class="dots">...</span>
+            {% endif %}
+
             {% if page < total_pages %}
-            <a href="{{ url_for('admin_panel', page=page+1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">下一頁</a>
+            <a href="{{ url_for('admin_panel', page=page+1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟩</a>
             {% endif %}
         </div>
     </div>
@@ -202,5 +242,63 @@
         </tr>
         {% endfor %}
     </table>
+
+    <!-- 所有記錄分頁控制 -->
+    <div class="pagination">
+        <!-- 頁碼資訊 -->
+        <div class="page-info">
+            第 {{ all_records_page }} 頁，共 {{ total_all_pages }} 頁 (總共 {{ total_all_records }} 筆記錄)
+        </div>
+        
+        <!-- 分頁按鈕 -->
+        <div class="page-buttons">
+            {% if all_records_page > 1 %}
+            <a href="{{ url_for('admin_panel', all_records_page=1, page=page, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟪</a>
+            <a href="{{ url_for('admin_panel', all_records_page=all_records_page-1, page=page, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟨</a>
+            {% endif %}
+
+            {% set window_size = 2 %}
+            {% set start_page = all_records_page - window_size %}
+            {% set end_page = all_records_page + window_size %}
+            
+            {# 調整範圍確保不超出邊界 #}
+            {% if start_page < 1 %}
+                {% set end_page = end_page - start_page + 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+            {% if end_page > total_all_pages %}
+                {% set start_page = start_page - (end_page - total_all_pages) %}
+                {% set end_page = total_all_pages %}
+            {% endif %}
+            {% if start_page < 1 %}
+                {% set start_page = 1 %}
+            {% endif %}
+
+            {# 顯示第一頁和省略號 #}
+            {% if start_page > 1 %}
+                {% if start_page > 2 %}
+                    <span class="dots">...</span>
+                {% endif %}
+            {% endif %}
+
+            {# 顯示頁碼 #}
+            {% for p in range(start_page, end_page + 1) %}
+                {% if p == all_records_page %}
+                    <span class="current-page">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin_panel', all_records_page=p, page=page, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {# 顯示省略號 #}
+            {% if end_page < total_all_pages - 1 %}
+                <span class="dots">...</span>
+            {% endif %}
+
+            {% if all_records_page < total_all_pages %}
+            <a href="{{ url_for('admin_panel', all_records_page=all_records_page+1, page=page, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟩</a>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>

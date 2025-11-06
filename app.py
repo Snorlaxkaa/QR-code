@@ -88,9 +88,24 @@ def admin_panel():
     total_hours += total_minutes // 60
     total_minutes = total_minutes % 60
 
-    # --- 下方完整資料表 ---
+    # --- 下方完整資料表分頁 ---
+    # 獲取完整記錄的頁碼
+    all_records_page = request.args.get('all_records_page', 1, type=int)
+    
+    # 獲取所有記錄
     cursor.execute("SELECT * FROM service_records ORDER BY serial_no DESC")
-    records = cursor.fetchall()
+    all_records_data = cursor.fetchall()
+    
+    # 計算完整記錄的分頁
+    total_all_records = len(all_records_data)
+    total_all_pages = max(1, (total_all_records + per_page - 1) // per_page)
+    all_records_page = max(1, min(all_records_page, total_all_pages))
+    
+    # 對完整記錄進行分頁
+    start_idx_all = (all_records_page - 1) * per_page
+    end_idx_all = start_idx_all + per_page
+    records = all_records_data[start_idx_all:end_idx_all]
+    
     cursor.close()
     conn.close()
 
@@ -106,7 +121,10 @@ def admin_panel():
         date_end=date_end,
         page=page,
         total_pages=total_pages,
-        total_records=total_records
+        total_records=total_records,
+        all_records_page=all_records_page,
+        total_all_pages=total_all_pages,
+        total_all_records=total_all_records
     )
 
 # ----------- 匯出資料（改為匯出搜尋結果）-----------
