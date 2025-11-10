@@ -6,6 +6,18 @@
     <title>打卡紀錄管理系統</title>
     <style>
         body { font-family: "微軟正黑體", Arial; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
         .header { background-color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1 { color: #333; margin: 0 0 10px 0; }
         .user-info { margin-bottom: 15px; color: #666; }
@@ -70,7 +82,10 @@
 <body>
     <div class="header">
         <h1>🏢 打卡紀錄管理系統</h1>
-        <div class="user-info">使用者：{{ user }}</div>
+        <div class="user-info">
+            使用者：{{ user }}
+            <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
+        </div>
         <a href="{{ url_for('qrcode_page') }}">
             <button>📷 前往 QR Code 打卡頁面</button>
         </a>

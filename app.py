@@ -10,19 +10,57 @@ from qrcode.constants import ERROR_CORRECT_Q
 import base64
 from datetime import datetime
 from flask import send_file
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from user import User
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_123"
 
-# ----------- 後台主頁 (已移除登入限制) -----------
+# 初始化 Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # 設定登入頁面的路由
+login_manager.login_message = '請先登入以繼續'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+# ----------- 登入頁面 -----------
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.get_by_username(username)
+        
+        if user and user.password == password:
+            login_user(user)
+            flash('登入成功！', 'success')
+            return redirect(url_for('admin_panel'))
+        else:
+            flash('帳號或密碼錯誤！', 'error')
+    
+    return render_template('login.html')
+
+# ----------- 登出 -----------
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('已登出！', 'success')
+    return redirect(url_for('login'))
+
+# ----------- 後台主頁 -----------
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
+@login_required
 def admin_panel():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
     # --- 基本參數 ---
-    nid = request.args.get('nid')
+    nid = request.args.get('nid', '').strip()
     date_start = request.args.get('date_start')
     date_end = request.args.get('date_end')
     page = request.args.get('page', 1, type=int)
@@ -40,8 +78,8 @@ def admin_panel():
                 if var_name == '開始日期': date_start = None
                 else: date_end = None
 
-    # --- 組合查詢 ---
-    query = """
+    # 組合查詢
+    base_query = """
         SELECT serial_no, name, id_number, service_start, service_end,
                service_item, service_content, service_hours, service_minutes,
                served_people_count, transport_fee, meal_fee, service_area,
@@ -49,24 +87,26 @@ def admin_panel():
         FROM service_records
         WHERE 1=1
     """
+    query = base_query
     params = []
 
     if nid:
-        query += " AND id_number = %s"
+        query += " AND LOWER(id_number) = LOWER(%s)"
         params.append(nid)
-
-    if date_start and date_end:
-        query += " AND DATE(service_start) BETWEEN %s AND %s"
-        params.extend([date_start, date_end])
-    elif date_start:
-        query += " AND DATE(service_start) >= %s"
-        params.append(date_start)
-    elif date_end:
-        query += " AND DATE(service_start) <= %s"
-        params.append(date_end)
     else:
-        # 預設顯示當月資料
-        query += " AND YEAR(service_start)=YEAR(CURDATE()) AND MONTH(service_start)=MONTH(CURDATE())"
+        # 如果沒有指定身分證號，則套用日期條件
+        if date_start and date_end:
+            query += " AND DATE(service_start) BETWEEN %s AND %s"
+            params.extend([date_start, date_end])
+        elif date_start:
+            query += " AND DATE(service_start) >= %s"
+            params.append(date_start)
+        elif date_end:
+            query += " AND DATE(service_start) <= %s"
+            params.append(date_end)
+        else:
+            # 預設顯示當月資料
+            query += " AND YEAR(service_start)=YEAR(CURDATE()) AND MONTH(service_start)=MONTH(CURDATE())"
 
     query += " ORDER BY service_start DESC"
 
@@ -112,7 +152,7 @@ def admin_panel():
     return render_template(
         'index.html',
         records=records,
-        user='訪客',
+        user=current_user.username,  # 使用登入用戶的名稱
         nid=nid,
         personal_records=current_page_records,
         total_hours=total_hours,
@@ -150,7 +190,7 @@ def export_xlsx():
 
     # ✅ 條件（依據輸入）
     if nid:
-        query += " AND id_number = %s"
+        query += " AND LOWER(id_number) = LOWER(%s)"
         params.append(nid)
 
     if date_start and date_end:
