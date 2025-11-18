@@ -25,7 +25,7 @@ def register_record_routes(app):
         page = request.args.get('page', 1, type=int)
         per_page = 30
 
-        print(f"搜尋參數：nid={nid}, date_start={date_start}, date_end={date_end}")  # 除錯用
+        print(f"🔍 搜尋參數：nid={nid}, date_start={date_start}, date_end={date_end}")
 
         # --- 驗證日期格式 ---
         for var_name, var_value in [('開始日期', date_start), ('結束日期', date_end)]:
@@ -34,8 +34,10 @@ def register_record_routes(app):
                     datetime.strptime(var_value, '%Y-%m-%d')
                 except ValueError:
                     flash(f'{var_name}格式不正確', 'error')
-                    if var_name == '開始日期': date_start = None
-                    else: date_end = None
+                    if var_name == '開始日期': 
+                        date_start = None
+                    else: 
+                        date_end = None
 
         # 組合查詢
         base_query = """
@@ -49,9 +51,21 @@ def register_record_routes(app):
         query = base_query
         params = []
 
+        # 🔧 修正：身分證號查詢邏輯
         if nid:
             query += " AND LOWER(id_number) = LOWER(%s)"
             params.append(nid)
+            
+            # 有身分證號時，也要套用日期條件
+            if date_start and date_end:
+                query += " AND DATE(service_start) BETWEEN %s AND %s"
+                params.extend([date_start, date_end])
+            elif date_start:
+                query += " AND DATE(service_start) >= %s"
+                params.append(date_start)
+            elif date_end:
+                query += " AND DATE(service_start) <= %s"
+                params.append(date_end)
         else:
             # 如果沒有指定身分證號，則套用日期條件
             if date_start and date_end:
@@ -69,9 +83,17 @@ def register_record_routes(app):
 
         query += " ORDER BY service_start DESC"
 
+        print(f"📝 SQL查詢: {query}")
+        print(f"📝 參數: {params}")
+
         # --- 執行查詢 ---
         cursor.execute(query, tuple(params))
         all_records = cursor.fetchall()
+
+        print(f"✅ 查詢結果數量: {len(all_records)}")
+        if all_records:
+            print(f"📅 第一筆日期: {all_records[0].get('service_start')}")
+            print(f"📅 最後一筆日期: {all_records[-1].get('service_start')}")
 
         # --- 分頁 ---
         total_records = len(all_records)
@@ -88,19 +110,15 @@ def register_record_routes(app):
         total_minutes = total_minutes % 60
 
         # --- 下方完整資料表分頁 ---
-        # 獲取完整記錄的頁碼
         all_records_page = request.args.get('all_records_page', 1, type=int)
         
-        # 獲取所有記錄
         cursor.execute("SELECT * FROM service_records ORDER BY serial_no DESC")
         all_records_data = cursor.fetchall()
         
-        # 計算完整記錄的分頁
         total_all_records = len(all_records_data)
         total_all_pages = max(1, (total_all_records + per_page - 1) // per_page)
         all_records_page = max(1, min(all_records_page, total_all_pages))
         
-        # 對完整記錄進行分頁
         start_idx_all = (all_records_page - 1) * per_page
         end_idx_all = start_idx_all + per_page
         records = all_records_data[start_idx_all:end_idx_all]
@@ -111,7 +129,7 @@ def register_record_routes(app):
         return render_template(
             'index.html',
             records=records,
-            user=current_user.username,  # 使用登入用戶的名稱
+            user=current_user.username,
             nid=nid,
             personal_records=current_page_records,
             total_hours=total_hours,
@@ -145,15 +163,12 @@ def register_record_routes(app):
             for f in fields:
                 v = request.form.get(f)
                 
-                # 處理日期時間格式
                 if f in ['service_start', 'service_end'] and v:
                     try:
-                        # 將HTML datetime-local格式轉換為MySQL datetime格式
                         v = datetime.strptime(v, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M:00')
                     except ValueError:
                         v = None
                 
-                # 處理數值欄位
                 elif f in ["service_hours", "service_minutes", "served_people_count",
                           "transport_fee", "meal_fee",
                           "foreign_service_count", "domestic_service_count"]:
@@ -162,13 +177,11 @@ def register_record_routes(app):
                     except ValueError:
                         v = 0
                 
-                # 處理其他可為空的欄位
                 elif v is None or v.strip() == "":
                     v = None
                     
                 values.append(v)
 
-            # ✅ 最後加上 serial_no 讓 SQL 的 WHERE 能對應上
             values.append(serial_no)
 
             sql = """
@@ -191,7 +204,6 @@ def register_record_routes(app):
                 conn.close()
             return redirect(url_for('admin_panel'))
 
-        # 讀取指定編號資料
         cursor.execute("SELECT * FROM service_records WHERE serial_no = %s", (serial_no,))
         record = cursor.fetchone()
         cursor.close()

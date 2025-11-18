@@ -1,7 +1,7 @@
 """
 QRCode 生成相關路由
 """
-from flask import render_template, request, flash
+from flask import render_template, request, flash, session
 import qrcode
 from qrcode.constants import ERROR_CORRECT_Q
 import base64
@@ -40,6 +40,9 @@ def register_qrcode_routes(app):
     # ----------- 生成 QRcode -----------
     @app.route("/qrcode", methods=["GET", "POST"])
     def qrcode_page():
+        # 清除所有之前的 flash 訊息（避免登入成功訊息出現）
+        session.pop('_flashes', None)
+        
         qr_base64 = None
         user_name = None
 
