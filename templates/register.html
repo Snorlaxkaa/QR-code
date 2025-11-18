@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用者註冊</title>
+    <style>
+        body { 
+            font-family: '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .register-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section-title {
+            background-color: #e7f3ff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 25px 0 15px 0;
+            color: #1a73e8;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+        .radio-option label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #1557b0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        .flash-messages li {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .flash-error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .flash-success {
+            color: #28a745;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .required {
+            color: #dc3545;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>👤 使用者註冊</h2>
+        <p class="subtitle">請填寫以下資訊以建立新帳號</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-messages">
+            {% for category, msg in messages %}
+            <li class="flash-{{ category }}">
+                {{ msg }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="warning-box">
+            <strong>⚠️ 注意事項</strong>
+            註冊新使用者需要管理員授權，請確保您已取得管理員的同意。
+        </div>
+
+        <form method="POST">
+            <!-- 新使用者資訊 -->
+            <div class="section-title">📝 新使用者資訊</div>
+            
+            <div class="form-group">
+                <label for="username">帳號 <span class="required">*</span></label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="請輸入帳號（4-20個字元）"
+                       minlength="4" maxlength="20"
+                       pattern="[a-zA-Z0-9_]+"
+                       title="只能包含英文、數字和底線">
+                <div class="help-text">只能使用英文、數字和底線</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密碼 <span class="required">*</span></label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="請輸入密碼（至少4個字元）"
+                       minlength="4">
+                <div class="help-text">密碼至少需要 4 個字元</div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">確認密碼 <span class="required">*</span></label>
+                <input type="password" id="confirm_password" name="confirm_password" required 
+                       placeholder="請再次輸入密碼"
+                       minlength="4">
+            </div>
+
+            <div class="form-group">
+                <label>使用者權限 <span class="required">*</span></label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="role_user" name="role" value="user" checked>
+                        <label for="role_user">👤 普通使用者</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="role_admin" name="role" value="admin">
+                        <label for="role_admin">👑 管理員</label>
+                    </div>
+                </div>
+                <div class="help-text">管理員擁有完整系統權限，請謹慎設定</div>
+            </div>
+
+            <!-- 管理員驗證 -->
+            <div class="section-title">🔐 管理員授權驗證</div>
+            
+            <div class="form-group">
+                <label for="admin_username">管理員帳號 <span class="required">*</span></label>
+                <input type="text" id="admin_username" name="admin_username" required 
+                       placeholder="請輸入授權管理員的帳號">
+                <div class="help-text">需要輸入現有管理員的帳號密碼以完成註冊</div>
+            </div>
+
+            <div class="form-group">
+                <label for="admin_password">管理員密碼 <span class="required">*</span></label>
+                <input type="password" id="admin_password" name="admin_password" required 
+                       placeholder="請輸入授權管理員的密碼">
+            </div>
+
+            <button type="submit">✅ 註冊新使用者</button>
+        </form>
+
+        <div class="back-link">
+            <a href="{{ url_for('login') }}">⬅️ 返回登入頁面</a>
+        </div>
+    </div>
+
+    <script>
+        // 驗證密碼一致性
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+
+        confirmPassword.addEventListener('input', function() {
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('密碼不一致');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+
+        password.addEventListener('input', function() {
+            if (confirmPassword.value && password.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('密碼不一致');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>

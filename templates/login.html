@@ -84,6 +84,24 @@
             color: #28a745 !important;
             background: #d4edda !important;
         }
+        .register-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .register-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            margin: 20px 0;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +130,12 @@
         </ul>
         {% endif %}
         {% endwith %}
+
+        <div class="divider">或</div>
+        
+        <div class="register-link">
+            <a href="{{ url_for('register') }}">👤 註冊新使用者</a>
+        </div>
     </div>
 </body>
 </html>
