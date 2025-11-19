@@ -8,13 +8,14 @@ from openpyxl.styles import Alignment
 from datetime import datetime
 import os
 from db import get_connection
-
+from flask_login import login_required
 
 def register_export_routes(app):
     """註冊匯出相關的路由"""
     
     # ----------- 匯出資料（改為匯出搜尋結果）-----------
     @app.route('/export_xlsx', methods=['GET', 'POST'])
+    @login_required
     def export_xlsx():
         nid = request.values.get('nid')
         date_start = request.values.get('date_start')

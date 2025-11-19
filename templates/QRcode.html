@@ -6,28 +6,62 @@
     <title>QRCode 產生器</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #0b5ed7;
+            --success-color: #198754;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "微軟正黑體", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
         }
 
         .card {
             border-radius: 20px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            padding: 50px;
+            padding: 30px;
+            background: white;
             max-width: 1000px;
         }
 
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+        }
+
         .btn-custom {
-            background: #0d6efd;
+            background: var(--primary-color);
             color: white;
             border-radius: 10px;
             font-size: 1.1rem;
-            padding: 10px 0;
+            padding: 12px 0;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .btn-custom:hover {
-            background: #0b5ed7;
+            background: var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-custom:active {
+            transform: translateY(0);
         }
 
         .qr-area {
@@ -41,6 +75,18 @@
             max-width: 260px;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .small-note {
@@ -53,23 +99,140 @@
             padding-right: 40px;
         }
 
+        @media (max-width: 768px) {
+            .form-section {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+                padding-right: 0;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
         .form-label {
-            font-size: 1.1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
         }
 
         input.form-control {
-            font-size: 1.1rem;
-            padding: 10px;
+            font-size: 1rem;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        input.form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
         }
 
         h2 {
             font-size: 2rem;
             font-weight: 600;
+            margin: 0;
         }
 
         .success-name {
             font-weight: 600;
-            color: #198754;
+            color: var(--success-color);
+        }
+
+        .alert {
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .alert p {
+            margin: 0;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+
+        .text-success {
+            color: var(--success-color);
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .fs-5 {
+            font-size: 1.25rem;
+        }
+
+        .btn-outline-secondary {
+            background: transparent;
+            border: 1px solid #6c757d;
+            color: #6c757d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .row {
+                flex-wrap: wrap;
+            }
+
+            .col-md-6 {
+                flex: 0 0 100%;
+            }
+
+            input, button {
+                font-size: 16px;
+            }
         }
     </style>
 </head>

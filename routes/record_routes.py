@@ -212,6 +212,7 @@ def register_record_routes(app):
 
     # ----------- 刪除資料 -----------
     @app.route('/delete/<int:serial_no>')
+    @login_required  
     def delete(serial_no):
         conn = get_connection()
         cursor = conn.cursor()
