@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜尋和匯出</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .button-group button {
+            flex: 1;
+            padding: 12px;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 搜尋和匯出</h1>
+        <a href="{{ url_for('admin_panel') }}">
+            <button class="back-btn">📋 返回主頁</button>
+        </a>
+    </div>
+
+    <div class="search-container">
+        <!-- 搜尋表單 -->
+        <div class="search-section">
+            <h2>📊 搜尋條件</h2>
+            <form method="GET" action="{{ url_for('search_page') }}">
+                <div class="form-group">
+                    <label for="nid">身分證字號：</label>
+                    <input type="text" id="nid" name="nid" value="{{ request.args.get('nid', '') }}" placeholder="輸入身分證字號">
+                </div>
+
+                <div class="form-group">
+                    <label for="date_start">開始日期：</label>
+                    <input type="date" id="date_start" name="date_start" value="{{ request.args.get('date_start', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="date_end">結束日期：</label>
+                    <input type="date" id="date_end" name="date_end" value="{{ request.args.get('date_end', '') }}">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">🔍 查詢資料</button>
+                    <form action="{{ url_for('export_xlsx') }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="nid" value="{{ request.args.get('nid', '') }}">
+                        <input type="hidden" name="date_start" value="{{ request.args.get('date_start', '') }}">
+                        <input type="hidden" name="date_end" value="{{ request.args.get('date_end', '') }}">
+                        <button type="submit" class="export-btn" style="width: 100%; padding: 12px;">📊 匯出 Excel</button>
+                    </form>
+                </div>
+            </form>
+        </div>
+
+        <!-- 搜尋結果 -->
+        {% if request.args.get('date_start') or request.args.get('date_end') or request.args.get('nid') %}
+        <div class="results-section">
+            <h2>📋 搜尋結果</h2>
+            
+            {% if personal_records %}
+                {% if nid %}
+                <div class="summary">
+                    🧮 {{ nid }} 的總工時：{{ total_hours }} 小時 {{ total_minutes }} 分
+                </div>
+                {% endif %}
+
+                <table class="search-table">
+                    <tr>
+                        <th>序號</th><th>姓名</th><th>身分證</th>
+                        <th>上班</th><th>下班</th><th>服務項目</th><th>服務內容</th>
+                        <th>工時</th><th>分鐘</th><th>服務人數</th>
+                        <th>交通費</th><th>餐費</th><th>服務地區</th>
+                        <th>備註</th><th>匯入動作</th><th>海外服務</th><th>國內服務</th>
+                    </tr>
+                    {% for r in personal_records %}
+                    <tr>
+                        <td>{{ r.serial_no }}</td>
+                        <td>{{ r.name }}</td>
+                        <td>{{ r.id_number }}</td>
+                        <td>{{ r.service_start }}</td>
+                        <td>{{ r.service_end or '尚未下班' }}</td>
+                        <td>{{ r.service_item }}</td>
+                        <td>{{ r.service_content }}</td>
+                        <td>{{ r.service_hours or 0 }}</td>
+                        <td>{{ r.service_minutes or 0 }}</td>
+                        <td>{{ r.served_people_count or 0 }}</td>
+                        <td>{{ r.transport_fee or 0 }}</td>
+                        <td>{{ r.meal_fee or 0 }}</td>
+                        <td>{{ r.service_area or '' }}</td>
+                        <td>{{ r.remarks or '' }}</td>
+                        <td>{{ r.import_action or '' }}</td>
+                        <td>{{ r.foreign_service_count or 0 }}</td>
+                        <td>{{ r.domestic_service_count or 0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                {% if personal_records %}
+                <div class="pagination">
+                    <div class="page-info">
+                        第 {{ page }} 頁，共 {{ total_pages }} 頁 (總共 {{ total_records }} 筆記錄)
+                    </div>
+                    
+                    <div class="page-buttons">
+                        {% if page > 1 %}
+                        <a href="{{ url_for('search_page', page=1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟪</a>
+                        <a href="{{ url_for('search_page', page=page-1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟨</a>
+                        {% endif %}
+
+                        {% set window_size = 2 %}
+                        {% set start_page = page - window_size %}
+                        {% set end_page = page + window_size %}
+                        
+                        {% if start_page < 1 %}
+                            {% set end_page = end_page - start_page + 1 %}
+                            {% set start_page = 1 %}
+                        {% endif %}
+                        {% if end_page > total_pages %}
+                            {% set start_page = start_page - (end_page - total_pages) %}
+                            {% set end_page = total_pages %}
+                        {% endif %}
+                        {% if start_page < 1 %}
+                            {% set start_page = 1 %}
+                        {% endif %}
+
+                        {% if start_page > 1 %}
+                            {% if start_page > 2 %}
+                                <span class="dots">...</span>
+                            {% endif %}
+                        {% endif %}
+
+                        {% for p in range(start_page, end_page + 1) %}
+                            {% if p == page %}
+                                <span class="current-page">{{ p }}</span>
+                            {% else %}
+                                <a href="{{ url_for('search_page', page=p, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if end_page < total_pages - 1 %}
+                            <span class="dots">...</span>
+                        {% endif %}
+
+                        {% if page < total_pages %}
+                        <a href="{{ url_for('search_page', page=page+1, nid=nid, date_start=date_start, date_end=date_end) }}" class="page-btn">⟩</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <p class="error-message">❌ 沒有找到符合條件的資料。</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='scroll-fix.js') }}"></script>
+</body>
+</html>
