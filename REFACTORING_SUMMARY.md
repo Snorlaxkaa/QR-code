@@ -1,22 +1,27 @@
-# 📋 程式碼整理總結
+# 📋 程式碼整理與功能完善總結
 
 ## ✅ 完成的重構工作
 
-你的 `app.py` 已成功分解為**模組化結構**！
+你的 `app.py` 已成功分解為**模組化結構**，並新增了**完整的使用者認證與註冊系統**！
 
 ## 📊 新的檔案組織
 
 ### 原始狀況
 - ❌ 所有程式碼都在 `app.py` 中 (426 行)
+- ❌ 只有基本登入功能
+- ❌ 沒有使用者管理系統
 
 ### 現在的組織方式
-- ✅ **app.py** → 只有 18 行（主程式進入點）
-- ✅ **config.py** → Flask 配置
+- ✅ **app.py** → 只有 19 行（主程式進入點）
+- ✅ **config.py** → Flask 配置 + bcrypt 密碼加密
+- ✅ **user.py** → 使用者模型與認證
+- ✅ **db.py** → 資料庫連線與操作
 - ✅ **routes/** 資料夾
-  - `auth_routes.py` → 登入/登出功能
+  - `auth_routes.py` → 登入/註冊/登出功能 ⭐ 已增強
   - `record_routes.py` → 服務記錄查詢、編輯、刪除
   - `export_routes.py` → Excel 匯出
   - `qrcode_routes.py` → QRCode 生成
+- ✅ **MQTT 模組** → mqtt_sender.py, mqtt_server.py (IoT 支援)
 
 ---
 
@@ -25,8 +30,10 @@
 | 原始功能 | 所在檔案 | 路由 |
 |---------|---------|------|
 | 登入頁面 | `routes/auth_routes.py` | `/login` |
+| 使用者註冊 | `routes/auth_routes.py` | `/register` ⭐ 新增 |
 | 登出 | `routes/auth_routes.py` | `/logout` |
 | 後台主頁 | `routes/record_routes.py` | `/`, `/index` |
+| 搜尋記錄 | `routes/record_routes.py` | `/search` ⭐ 新增 |
 | 編輯資料 | `routes/record_routes.py` | `/edit/<serial_no>` |
 | 刪除資料 | `routes/record_routes.py` | `/delete/<serial_no>` |
 | 匯出 Excel | `routes/export_routes.py` | `/export_xlsx` |
@@ -41,6 +48,9 @@
 3. **更容易擴展** - 新增功能只需新增路由檔案
 4. **代碼重用** - 便於導入和共享功能
 5. **更清晰** - 快速找到相關功能
+6. **安全的認證** - 使用 bcrypt 加密密碼，無法被還原
+7. **完整的權限管理** - 管理員授權制度，防止未授權註冊
+8. **IoT 支援** - MQTT 模組支援物聯網通信
 
 ---
 
@@ -50,6 +60,17 @@
 ```bash
 python app.py
 ```
+
+系統會自動在 `http://localhost:5000` 啟動。
+
+### 第一次運行
+
+如果這是第一次運行系統，請先執行遷移工具：
+```bash
+python "Test tool/migrate_passwords.py"
+```
+
+這會建立 `users` 資料表並創建預設管理員帳號。
 
 所有路由和功能都保持不變。
 

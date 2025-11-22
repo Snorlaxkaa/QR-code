@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 # --- 設定區 ---
 # 如果接收端跟 Mosquitto 在同一台電腦，用 "localhost"
 # 如果是不同電腦，請填 Mosquitto 那台的 IP (例如 "192.168.1.10")
-BROKER_ADDRESS = "10.30.8.115" 
+BROKER_ADDRESS = "172.20.10.2" 
 PORT = 1883
 TOPIC = "test/chat"
 

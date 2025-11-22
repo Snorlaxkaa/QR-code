@@ -79,7 +79,7 @@ def register_record_routes(app):
             SELECT serial_no, name, id_number, service_start, service_end,
                    service_item, service_content, service_hours, service_minutes,
                    served_people_count, transport_fee, meal_fee, service_area,
-                   remarks, import_action, foreign_service_count, domestic_service_count
+                   remarks, import_action, serial_number, foreign_service_count, domestic_service_count
             FROM service_records
             WHERE 1=1
         """
@@ -146,7 +146,7 @@ def register_record_routes(app):
                 'name', 'id_number', 'service_start', 'service_end',
                 'service_item', 'service_content', 'service_hours', 'service_minutes',
                 'served_people_count', 'transport_fee', 'meal_fee',
-                'service_area', 'remarks', 'import_action',
+                'service_area', 'remarks', 'import_action', 'serial_number',
                 'foreign_service_count', 'domestic_service_count'
             ]
 
@@ -183,7 +183,7 @@ def register_record_routes(app):
                 SET name=%s, id_number=%s, service_start=%s, service_end=%s,
                     service_item=%s, service_content=%s, service_hours=%s, service_minutes=%s,
                     served_people_count=%s, transport_fee=%s, meal_fee=%s,
-                    service_area=%s, remarks=%s, import_action=%s,
+                    service_area=%s, remarks=%s, import_action=%s, serial_number=%s,
                     foreign_service_count=%s, domestic_service_count=%s
                 WHERE serial_no=%s
             """

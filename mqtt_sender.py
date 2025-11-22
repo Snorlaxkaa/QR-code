@@ -3,7 +3,7 @@ import time
 
 # --- 設定區 ---
 # 請填入 Mosquitto Server 的 IP
-BROKER_ADDRESS = "10.30.8.115"
+BROKER_ADDRESS = "172.20.10.2"
 PORT = 1883
 TOPIC = "test/chat"
 
